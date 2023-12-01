@@ -1,0 +1,153 @@
+-- Copyright (c) 2022 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+module User where
+
+-- MAIN_TEMPLATE_BEGIN
+template User with
+    username: Party
+    following: [Party]
+  where
+    signatory username
+    observer following
+-- MAIN_TEMPLATE_END
+
+    key username: Party
+    maintainer key
+
+    -- FOLLOW_BEGIN
+    nonconsuming choice Follow: ContractId User with
+        userToFollow: Party
+      controller username
+      do 
+        assertMsg "You cannot follow yourself" (userToFollow /= username)
+        assertMsg "You cannot follow the same user twice" (notElem userToFollow following)
+        archive self
+        create this with following = userToFollow :: following
+    -- FOLLOW_END
+
+    -- SEND_MESSAGE_BEGIN
+    nonconsuming choice SendMessage: ContractId Message with
+        sender: Party
+        content: Text
+      controller sender
+      do
+        assertMsg "Designated user must follow you back to send a message" (elem sender following)
+        create Message with sender, receiver = username, content
+    -- SEND_MESSAGE_END
+
+-- MESSAGE_BEGIN
+template Message with
+    sender: Party
+    receiver: Party
+    content: Text
+  where
+    signatory sender, receiver
+-- MESSAGE_END
+
+-- ENTERPRISE_BEGIN
+template Enterprise with
+    owner: Party
+    dataStreams: [Text]
+  where
+    signatory owner
+
+    key owner: Party
+    maintainer key
+
+    nonconsuming choice AddDataStream: ContractId Enterprise with
+        streamToAdd: Text
+      controller owner
+      do
+        archive self
+        create this with dataStreams = streamToAdd :: dataStreams
+
+-- ENTERPRISE_END
+
+-- AUDITOR_BEGIN
+template Auditor with
+    owner: Party
+    dataStream: Text
+  where
+    signatory owner
+
+    key owner: Party
+    maintainer key
+
+    nonconsuming choice CertifyDataStream: ContractId Auditor with
+        streamToCertify: Text
+      controller owner
+      do
+        archive self
+        create this with dataStream = streamToCertify
+-- AUDITOR_END
+
+-- DATASTREAM_BEGIN
+template DataStream with
+    owner: Party
+    certifier: Party
+    channel: Text
+    events: Text
+  -- need to solve for authorization error when certifier is a second signatory
+  where
+    signatory owner
+
+    key owner: Party
+    maintainer key
+
+    nonconsuming choice AddAuditorAsCertifier: ContractId DataStream with
+        newCertifier: Party
+      controller owner
+      do
+        archive self
+        create this with certifier = newCertifier
+-- DATASTREAM_END
+
+-- ASSET_BEGIN
+template Asset with
+    owner: Party
+    dataStream: DataStream
+  where
+    signatory owner
+
+    key owner: Party
+    maintainer key
+-- ASSET_END
+
+-- BANK_BEGIN
+template Bank with
+    owner: Party
+    assets: [Party]
+  where
+    signatory owner
+
+    key owner: Party
+    maintainer key
+
+    nonconsuming choice AddAsset: ContractId Bank with
+        newAsset: Party
+      controller owner
+      do
+        archive self
+        create this with assets = [newAsset]
+-- BANK_END
+
+-- ALIAS_BEGIN
+template Alias with
+    username: Party
+    alias: Text
+    public: Party
+  where
+    signatory username
+    observer public
+
+    key (username, public) : (Party, Party)
+    maintainer key._1
+
+    nonconsuming choice Change: ContractId Alias with
+        newAlias: Text
+      controller username
+      do
+        archive self
+        create this with alias = newAlias
+-- ALIAS_END
