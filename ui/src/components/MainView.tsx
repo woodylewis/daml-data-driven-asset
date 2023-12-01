@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useMemo } from 'react';
-import { Container, Grid, Header, Icon, Segment, Divider, Button } from 'semantic-ui-react';
+import { Container, Grid, Header, Segment, Divider, Button } from 'semantic-ui-react';
 import { Party } from '@daml/types';
 import { User } from '@daml.js/create-daml-app';
 import { publicContext, userContext } from './App';
 // import UserList from './UserList';
 import PartyListEdit from './PartyListEdit';
-import MessageEdit from './MessageEdit';
+// import MessageEdit from './MessageEdit';
 import MessageList from './MessageList';
 // import { DataStream, Enterprise, Bank, AddDataStream } from '@daml.js/create-daml-app/lib/User';
 
 import { FINANCIAL_EVENTS } from './MockEvents';
-import { DataStream } from '@daml.js/create-daml-app/lib/User';
+// import { DataStream } from '@daml.js/create-daml-app/lib/User';
 
 // USERS_BEGIN
 const MainView: React.FC = () => {
@@ -81,7 +81,7 @@ const MainView: React.FC = () => {
       const theDataStream = await ledger.fetchByKey(User.DataStream, username);
       if (theDataStream) {
         const theAsset = await ledger.create(User.Asset, { owner: username, dataStream: theDataStream.payload });
-        const theNewBank = await ledger.exerciseByKey(User.Bank.AddAsset, username, { newAsset: theAsset.contractId});
+        await ledger.exerciseByKey(User.Bank.AddAsset, username, { newAsset: theAsset.contractId});
         doMessage('Create asset');
       } else {
         alert('DataStream not found');
@@ -136,7 +136,7 @@ const MainView: React.FC = () => {
   const populateData = async () => {
     const dataStream = await createDataStream(username, username, 'FINANCIAL', FINANCIAL_EVENTS);
     await addData(dataStream.payload.events, username);
-    const e = await ledger.fetchByKey(User.Enterprise, username);
+    await ledger.fetchByKey(User.Enterprise, username);
     doMessage('Populate data');
   };
 

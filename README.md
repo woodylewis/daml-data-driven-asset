@@ -38,8 +38,14 @@ Only the Enterprise tab will show four buttons:
 3) Certify - certify the data stream
 4) Asset - create an instance of Asset template, then assign data stream
 
+As Enterprise, follow Bank and Auditor.
 
-To run the mock workflow, click these 4 buttons in sequence, waiting a second or two after clicking each one.
+As Bank, follow Enterprise.
+
+As Auditor, follow Enterprise.
+
+
+To run the mock workflow from the Enterprise tab, click the 4 buttons in sequence, waiting a second or two after clicking each one.
 
 ## Notes
 
